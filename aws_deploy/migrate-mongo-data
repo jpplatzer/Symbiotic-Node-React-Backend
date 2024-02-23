@@ -1,0 +1,6 @@
+docker run --rm \
+  -ti \
+  -v mongodbdata:/from \
+  -v datavol:/to \
+  735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/mongodb \
+  /bin/bash -c "cd /from ; cp -av . /to"

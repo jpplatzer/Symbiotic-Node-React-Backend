@@ -1,0 +1,60 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "mongodb",
+      "image": "735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_mongo",
+      "portMappings": [
+        {
+          "containerPort": 27017,
+          "hostPort": 27017
+        }
+      ],
+      "command": [
+        "mongod", "--auth",
+        "--replSet", "webApp",
+        "--keyFile", "/data/files/interDbKey"
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "datavol",
+          "containerPath": "/data/db",
+          "readOnly": false
+        },
+        {
+          "sourceVolume": "opt_files",
+          "containerPath": "/data/files",
+          "readOnly": true
+        }
+      ],
+      "cpu": 1800,
+      "memory": 800
+    }
+  ],
+  "volumes": [
+    {
+      "name": "datavol",
+      "dockerVolumeConfiguration": {
+      	"driver": "local",
+      	"driverOpts": {
+      		"type": "xfs",
+      		"device": "/dev/xvdf1"
+      	},
+      	"scope": "shared",
+      	"autoprovision": true
+      }
+    },
+    {
+      "name": "opt_files",
+      "host": {
+        "sourcePath": "/opt/files"
+      }
+    }    
+  ],
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:instanceRole == dbSecondary"
+    }
+  ],
+  "family": "dbSecondary"
+}

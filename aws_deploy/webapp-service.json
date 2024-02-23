@@ -1,0 +1,6 @@
+{
+    "cluster": "symbiotic-web",
+    "serviceName": "webapp",
+    "taskDefinition": "webapp",
+    "desiredCount": 1
+}

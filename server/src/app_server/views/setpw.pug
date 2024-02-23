@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  .main.container
+    .row
+      .col-sm-offset-3.col-sm-6.col-md-offset-3.col-md-5
+        .symform1-cont
+          h3.display-5.m-b-2.sym-center Update Password
+          p.sym-u-2 #{prompt}
+          p.sym-center.sym-u-1.error-msg #{error}
+          form(method='POST' action='/setpw')
+            div.form-group
+              label(for='newpw') New Password
+              input.form-control(type='password' id='newpw' placeholder='password' name='newPw')
+            div.form-group
+              label(for='newpw2') Re-enter Password
+              input.form-control(type='password' id='newpw2' placeholder='re-enter password' name='newPw2')
+              input.form-control(type='hidden' id='id' name='id' value=user)
+              input.form-control(type='hidden' id='tempCode' name='tempCode' value=tempCode)
+            div.sym-center
+              button.btn.btn-primary(type='submit') Update
+              button.btn.btn-default.sym-l-2(formaction='/') Cancel
+          .sym-u-1
+          a(href="/resetpw") Forgot password?

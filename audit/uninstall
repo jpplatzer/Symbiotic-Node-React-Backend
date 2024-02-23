@@ -1,0 +1,35 @@
+#!/bin/sh
+
+SCAN_FILE=scan
+COOKIE_FILE=cookies.txt
+README_FILE=README
+UNISTALL_FILE=uninstall
+COMMS_DIR="comms"
+CERTS_DIR="certs"
+SCRIPTS_DIR="scripts"
+LYNIS_DIR="lynis"
+RESULTS_DIR="results"
+
+if [ `id -u` != '0' ]; then
+	echo "scan must be run by the root user (or using sudo)."
+	exit 1
+fi
+
+if [ ! -f $SCAN_FILE ] || [ ! -d $LYNIS_DIR ]; then
+	echo "Please change to the directory where the security scan is installed"
+	exit 1
+fi
+
+echo "Uninstalling security scan"
+
+rm $COOKIE_FILE 2> /dev/null
+rm $README_FILE
+rm -rf $COMMS_DIR
+rm -rf $CERTS_DIR
+rm -rf $RESULTS_DIR
+rm -rf $LYNIS_DIR
+rm -rf $SCRIPTS_DIR
+rm $SCAN_FILE
+rm $UNISTALL_FILE
+
+echo "Security scan uninstallation completed"

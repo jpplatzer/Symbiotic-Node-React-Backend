@@ -1,0 +1,5 @@
+docker run -it --rm \
+  -v ~/symbiotic/source/backend/web_dev/client:/usr/src/app/src/client \
+  -v files:/usr/src/app/files \
+  -v mongodbdata:/usr/src/app/mongodbdata \
+  --user=$1 sym_webapp /bin/bash

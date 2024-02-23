@@ -1,0 +1,15 @@
+Symbiotic Security's device security scan successfully installed.
+
+As the root user, run ./scan to perform a security scan. Once the
+audit has successfully completed, the results will be available on the
+website.
+
+In order to communicate the scan results to the web server, the
+device must have the "curl" utility with SSL support installed.
+
+The scan program uses open source Lynis software licensed from CISCOfy
+under the terms of the GNU General Public License as published by
+the Free Software Foundation. See the lynis/LICENSE file for the terms
+of the GNU General Public License agreement.
+
+scan - Copyright 2018, Symbiotic Security. All rights reserved.

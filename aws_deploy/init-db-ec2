@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Install AWS CLI package
+yum install -y aws-cli
+
+# Configure AWS region
+aws configure set region us-west-2
+
+# Set ECS config
+aws s3 cp s3://symbioticsecurity-internal/db-ecs.config /etc/ecs/ecs.config
+
+# Create inter-DB key file
+DBKEY=`aws secretsmanager get-secret-value --secret-id "db/interDbKey" | grep SecretString | cut -d \" -f 7 | tr -d '\\'`
+mkdir /opt/files
+echo $DBKEY > /opt/files/interDbKey
+chown chrony:chrony /opt/files/interDbKey
+chmod 400 /opt/files/interDbKey
+
+# Install the specified service daemon
+install_service() {
+	aws s3 cp s3://symbioticsecurity-internal/$1 /etc/init.d/$1
+	chmod 755 /etc/init.d/$1
+	chkconfig --add $1
+}
+
+# Disable Transparent Huge Pages
+install_service S99disable-transparent-hugepages
+
+# Mount EBS volume(s)
+install_service S99mount-test-db-volumes
+
+# Reboot to enable the above services to run
+reboot

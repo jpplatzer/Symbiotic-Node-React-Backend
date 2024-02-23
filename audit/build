@@ -1,0 +1,13 @@
+if [ -z $3 ]; then
+	echo "Required params: 1) scan dir, 2) registration file dir 3) destination dir"
+	exit 1
+fi
+
+SCAN_FILE="$3/scan.tgz"
+INSTALL_FILE="$3/install"
+
+tar --exclude-from=$1/excluded.txt -czvf $SCAN_FILE -C $1 scan README uninstall comms lynis scripts certs -C $2 comms
+cat $1/header $SCAN_FILE > $INSTALL_FILE
+chmod +x $INSTALL_FILE
+rm $SCAN_FILE
+rm -rf $2

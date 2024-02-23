@@ -1,0 +1,228 @@
+#!/bin/sh
+
+if [ `id -u` != '0' ]; then
+	echo "scan must be run by the root user (or using sudo)."
+	exit 1
+fi
+
+if [ -z "`curl -V 2>/dev/null | grep https`" ]; then
+	echo "Curl with HTTPS support must be installed."
+	exit 1
+fi
+
+if [ ! -d "/var/log" ]; then
+	mkdir -p /var/log
+fi
+
+OS_KERN=`uname -s`
+
+if test "$OS_KERN" != "Linux"; then
+	echo "OS is $OS_KERN. Only Linux is currently supported."
+	exit 1
+fi
+
+OS_VER=`uname -r`
+OS_CPU=`uname -m`
+HOST=`uname -n`
+
+COOKIE_FILE=cookies.txt
+REG_URL=`cat comms/reg_url.txt`
+LOGIN_URL=`cat comms/login_url.txt`
+AUDIT_URL=`cat comms/audit_url.txt`
+REG_FILE=comms/register.json
+LOGIN_FILE=comms/login.json
+
+register() {
+	CURL_RET=`curl --cacert certs/ca.crt \
+		-H "Content-Type: application/json" -X POST \
+		--data @$REG_FILE -s -o temp.json -w "%{http_code}" $REG_URL`
+	if test "$CURL_RET" = "200"; then
+		mv temp.json $LOGIN_FILE
+		echo "Device successfully registered"
+	elif test "$CURL_RET" = "400"; then
+		REG_ERROR="Invalid Request"
+	elif test "$CURL_RET" = "404"; then
+		REG_ERROR="Registration not valid"
+	elif test "$CURL_RET" = "403"; then
+		REG_ERROR="Device limit reached"
+	else
+		REG_ERROR="Server error"
+	fi
+	if ! [ -z "$REG_ERROR" ]; then
+		echo "Failure registering device: $REG_ERROR"
+		exit 1
+	fi
+}
+
+login() {
+	curl --cacert certs/ca.crt --cookie-jar $COOKIE_FILE \
+		-H "Content-Type: application/json" -X POST \
+		--data @$LOGIN_FILE -s -o /dev/null -w "%{http_code}" $LOGIN_URL
+}
+
+if [ ! -f $LOGIN_FILE ]; then
+	register
+else
+	LOGIN_RET=`login`
+fi
+
+if test -z "$LOGIN_RET"; then
+	LOGIN_RET=`login`
+elif test "$LOGIN_RET" = "401"; then
+	register
+	LOGIN_RET=`login`
+fi
+
+if test "$LOGIN_RET" != "200"; then
+	echo "Error logging into the server: $LOGIN_RET"
+	exit 1
+fi
+
+get_release_val() {
+	cat /etc/*elease 2>/dev/null | grep ^$1= | cut -d '=' -f 2
+}
+
+to_lower() {
+	echo $1 | tr '[A-Z]' '[a-z]'
+}
+
+get_paren_2nd_val() {
+	echo $2 | cut -d "(" -f2 | cut -d ")" -f1
+}
+
+get_1st_val() {
+	echo $1 | cut -d \" -f2 | cut -d ' ' -f1
+}
+
+get_meminfo() {
+	cat /proc/meminfo 2>/dev/null | grep $1 | tr -s ' ' | cut -d ' ' -f 2
+}
+
+strip_double_quotes() {
+	if [ -z `echo $1 | grep \"` ]; then
+		echo $1
+	else
+		echo $1 | cut -d \" -f2
+	fi
+}
+
+strip_single_quotes() {
+	if [ -z `echo $1 | grep \'` ]; then
+		echo $1
+	else
+		echo $1 | cut -d \' -f2
+	fi
+}
+
+DISTRO_ID=`get_release_val DISTRIB_ID`
+if [ -z "$DISTRO_ID" ]; then
+	DISTRO_ID=`get_release_val ID`
+fi
+
+DISTRO_ID=`strip_double_quotes $DISTRO_ID`
+DISTRO_ID=`strip_single_quotes $DISTRO_ID`
+
+DISTRO_LCASE=`to_lower $DISTRO_ID`
+PKG_CMD=""
+DISTRO_VER="N/A"
+DISTRO_2ND_LCASE="N/A"
+DISTRO_2ND_VER="N/A"
+
+if [ "$DISTRO_LCASE" = "debian" ] || [ "$DISTRO_LCASE" = "raspbian" ] || [ "$DISTRO_LCASE" = "ubuntu" ]; then
+	if [ "$DISTRO_LCASE" = "ubuntu" ]; then
+		DISTRO_VER=`get_release_val DISTRIB_CODENAME`
+	else
+		DISTRO_VER=`get_release_val VERSION`
+		DISTRO_VER=`get_paren_2nd_val $DISTRO_VER`
+	fi
+	DISTRO_VER=`to_lower $DISTRO_VER`
+	DISTRO_ARCH=`dpkg --print-architecture`
+	PKG_CMD="scripts/get_debian_pkgs"
+	if [ "$DISTRO_LCASE" = "raspbian" ]; then
+		DISTRO_2ND_LCASE="debian"
+		DISTRO_2ND_VER=$DISTRO_VER
+	fi
+elif [ "$DISTRO_LCASE" = "centos" ] || [ "$DISTRO_LCASE" = "rhel" ] || [ "$DISTRO_LCASE" = "fedora" ]; then
+	DISTRO_VER=`get_release_val VERSION`
+	DISTRO_VER=`get_1st_val $DISTRO_VER`
+	PKG_CMD="scripts/get_centos_pkgs"
+elif [ "$DISTRO_LCASE" = "openwrt" ]; then
+	DISTRO_VER=`get_release_val DISTRIB_RELEASE`
+	DISTRO_VER=`strip_single_quotes $DISTRO_VER`
+	DISTRO_ARCH=`get_release_val DISTRIB_ARCH`
+	DISTRO_ARCH=`strip_single_quotes $DISTRO_ARCH`
+	PKG_CMD="scripts/get_openwrt_pkgs"
+else
+	echo "The $DISTRO_ID distribution is not yet fully supported."
+fi
+
+echo "OS Info: $OS_KERN $OS_VER $OS_CPU"
+echo "Distribution: $DISTRO_ID $DISTRO_VER"
+
+TOTAL_MEM=`get_meminfo MemTotal`
+FREE_MEM=`get_meminfo MemFree`
+AVAIL_MEM=`get_meminfo MemAvailable`
+
+SECTION_DELIM=">>>>>SSA_Section:"
+TYPE_DELIM="Type:"
+DISTRO_DELIM="Distro:"
+REL_DELIM="Release:"
+DISTRO_2ND_DELIM="Distro_2nd:"
+REL_2ND_DELIM="Release_2nd:"
+RESULTS_DIR=$PWD/results
+mkdir -p $RESULTS_DIR
+RESULTS_PATH=$RESULTS_DIR/results.txt
+
+echo "Please wait while performing the security scan ..."
+
+echo "${SECTION_DELIM}System Information" > $RESULTS_PATH
+echo "${TYPE_DELIM}KVP" >> $RESULTS_PATH
+echo "Host=$HOST" >> $RESULTS_PATH
+echo "Kernel=$OS_KERN" >> $RESULTS_PATH
+echo "Version=$OS_VER" >> $RESULTS_PATH
+echo "Processor=$OS_CPU" >> $RESULTS_PATH
+echo "Total Memory=$TOTAL_MEM KB" >> $RESULTS_PATH
+echo "Free Memory=$FREE_MEM KB" >> $RESULTS_PATH
+echo "Available Memory=$AVAIL_MEM KB" >> $RESULTS_PATH
+echo "Distribution=$DISTRO_ID" >> $RESULTS_PATH
+echo "Release=$DISTRO_VER" >> $RESULTS_PATH
+echo "Second Distribution=$DISTRO_2ND_LCASE" >> $RESULTS_PATH
+echo "Second Release=$DISTRO_2ND_VER" >> $RESULTS_PATH
+if [ ! -z $DISTRO_ARCH ]; then
+	echo "Distribution Architecture=$DISTRO_ARCH" >> $RESULTS_PATH
+fi
+
+echo "${SECTION_DELIM}Security Scan Findings" >> $RESULTS_PATH
+echo "${TYPE_DELIM}SAS" >> $RESULTS_PATH
+cd lynis
+./lynis audit system >> $RESULTS_PATH
+cd ..
+
+if test ! -z "$PKG_CMD"; then
+	echo "${SECTION_DELIM}Software Package Security Statuses" >> $RESULTS_PATH
+	echo "${TYPE_DELIM}SPS" >> $RESULTS_PATH
+	echo "${DISTRO_DELIM}${DISTRO_LCASE}" >> $RESULTS_PATH
+	echo "${REL_DELIM}${DISTRO_VER}" >> $RESULTS_PATH
+	echo "${DISTRO_2ND_DELIM}${DISTRO_2ND_LCASE}" >> $RESULTS_PATH
+	echo "${REL_2ND_DELIM}${DISTRO_2ND_VER}" >> $RESULTS_PATH
+	$PKG_CMD >> $RESULTS_PATH
+fi
+
+CURL_RET=`curl --cacert certs/ca.crt --cookie $COOKIE_FILE \
+    -H "Content-Type: text/plain" -X POST \
+    --data-binary @$RESULTS_PATH -s -o /dev/null -w "%{http_code}" $AUDIT_URL`
+
+RETVAl=1
+
+if test "$CURL_RET" = "200"; then
+	echo "Scan completed successfully"
+	RETVAl=0
+elif test "$CURL_RET" = "403"; then
+	echo "Scan failure: device scan limit reached"
+else
+	echo "Scan failure: server error"
+fi
+
+rm $COOKIE_FILE
+
+exit $RETVAL

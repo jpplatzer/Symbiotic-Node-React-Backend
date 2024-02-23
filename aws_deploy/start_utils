@@ -1,0 +1,5 @@
+aws ec2 run-instances --image-id ami-0e5e051fd0b505db6 --count 1 \
+--instance-type t2.medium --iam-instance-profile Name=webEcsInstanceRole \
+--key-name aws-jplatzer --security-group-ids sg-00077685b27bed995 \
+--tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=utils}]' \
+--user-data file://init-utils-ec2

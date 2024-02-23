@@ -1,0 +1,23 @@
+{
+    "cluster": "symbiotic-web",
+    "serviceName": "webapp",
+    "taskDefinition": "webapp",
+    "loadBalancers": [
+        {
+        	"targetGroupArn": "arn:aws:elasticloadbalancing:us-west-2:735780432129:targetgroup/testweb/28f690c07f5d81e1",
+            "containerName": "webapp",
+            "containerPort": 3080
+        }
+    ],
+    "desiredCount": 2,
+	"placementStrategy": [
+    	{
+        	"field": "attribute:ecs.availability-zone",
+        	"type": "spread"    	
+        }
+	],    
+    "deploymentConfiguration": {
+        "maximumPercent": 100,
+        "minimumHealthyPercent": 50
+    }
+}

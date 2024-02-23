@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  .main.container
+    .row
+      .col-sm-offset-3.col-sm-6.col-md-offset-3.col-md-5
+        .symform1-cont
+          h3.display-5.m-b-2.sym-center Reset Password
+          p.sym-u-2 #{prompt}
+          p.sym-center.sym-u-1.error-msg #{error}
+          form(method='POST' action='/resetpw')
+            div.form-group
+              label(for='email') Email Address
+              input.form-control(type='text' id='email' placeholder='Email Address' name='id')
+            div.sym-center
+              button.btn.btn-primary(type='submit') Send Reset
+              button.btn.btn-default.sym-l-2(formaction='/') Cancel

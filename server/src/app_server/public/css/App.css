@@ -1,0 +1,359 @@
+/*
+ * Base structure
+ */
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+.App {
+  padding-top: 50px;
+}
+
+
+/*
+ * Global add-ons
+ */
+
+.sub-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top {
+  border: 0;
+}
+
+.navbar-default {
+    /*
+    background-color: #2d5f8b;
+    border-color: #2d5f8b;
+    */
+    /*
+    background-color: #5d8fbb;
+    border-color: #5d8fbb;
+    */
+
+    background-color: #2d5f8b;
+    border-color: #2d5f8b;
+    padding-right: 40px;
+}
+
+.navbar-default .navbar-brand {
+    color: #F8F8F8;
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus {
+    color: #FFFFFF;
+}
+
+.navbar-default .navbar-nav > li > a {
+    color: #E7E7E7;
+}
+
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+  background-color: #4274a0;
+  color: #FFFFFF;
+}
+
+/*
+ * Sidebar
+ */
+
+/* Hide for mobile, show later */
+.sidebar {
+  display: none;
+}
+
+@media screen and (min-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 51px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    width: 200px; 
+    float: left;
+    display: block;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    background-color: #f0f0f0;
+    border-right: 1px solid #eee;
+  }
+}
+
+/* Scrollable contents if viewport is shorter than content. */
+
+/* Sidebar navigation */
+.nav-sidebar {
+  margin-right: -21px; /* 20px padding + 1px border */
+  margin-bottom: 20px;
+  margin-left: -20px;
+}
+.nav-sidebar > li {
+  padding-top: 8px;
+}
+
+.nav-sidebar > li > a {
+  font-size: 110%;
+  color: #505070;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 25px;
+}
+
+.nav-sidebar > li > a > i {
+  font-size: 140%;
+  padding-right: 8px;
+}
+
+.nav-sidebar > li > a:hover {
+  color: #3768f0;
+  background-color: #d8d8d8;
+}
+
+.nav-sidebar > .active > a,
+.nav-sidebar > .active > a:focus:not(:hover) {
+  color: #3758e0;
+  background-color: #e0e0e0;
+}
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+  font-family: Verdana,sans-serif;
+}
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main .page-header {
+  margin-top: 0;
+}
+
+
+/*
+ * Placeholder dashboard ideas
+ */
+
+.placeholders {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.placeholders h4 {
+  margin-bottom: 0;
+}
+.placeholder {
+  margin-bottom: 20px;
+}
+.placeholder img {
+  display: inline-block;
+  border-radius: 50%;
+}
+
+table thead th {
+  font-weight: bold;
+}
+
+table th {
+  font-weight: normal;
+}
+
+/****
+.borderless tr, .borderless td, .borderless th {
+    border: none !important;
+}
+***/
+
+.outer-border {
+    border: 2px solid #d8d8d8;
+}
+
+/***
+.outer-border tr, .outer-border td, .outer-border th {
+    border: none !important;
+}
+***/
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Verdana,sans-serif;
+  font-size: 13px;
+}
+
+.dropdown-menu {
+  background-color: #fafafa;
+  min-width: 160px;
+  box-shadow: 10px 10px 13px -2px rgba(0,0,0,0.25);
+}
+
+#sym-dropdown-wide {
+  min-width: 200px;
+}
+
+/***
+https://www.formget.com/css-hr/
+***/
+
+#sym-dropdown-hr {
+  margin-top: 0em;
+  margin-bottom: 0em;
+  border-top: 1px solid #c0c0c0;
+  border-bottom: 1px solid #fafafa;
+  background-color: #fafafa;
+}
+
+.dropdown-item a {
+  text-decoration: none;
+  display: block;
+  text-align: left;
+  color: #101010;
+  padding: 8px 6px;
+  font-size: 90%;
+  background-color: #fafafa;
+}
+
+.dropdown-item a:hover {
+  background-color: #dcdcdc;
+}
+
+a.dropdown-header, a.dropdown-header:hover{
+  font-weight: normal;
+  font-size: 100%;
+  background-color: #fafafa;
+}
+
+.sym_blue {
+  color: #2d5f8b;
+}
+
+.sym_orange {
+  color: #f7682b;
+}
+
+.summary_font {
+  font-family: Verdana,sans-serif;
+  font-size: 48px;
+}
+
+.sym_sb_sub {
+  margin-left: 1em;
+}
+
+.symform1-lbl {
+  font-weight: normal;
+  display:block;
+  padding-top: 10px;
+}
+
+.symform1-inp {
+  border: 0;
+  outline: 0;
+  width: 260px;
+  background: transparent;
+  border-bottom: 2px solid #777777;
+}
+
+input.symform1-inp:hover,
+input.symform1-inp:focus {
+  border-bottom: 2px solid #4466bb;
+}
+
+.sym-link > a {
+  padding: 0px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 25px;
+}
+
+.sym-link > a:hover {
+  color: #3768f0;
+  background-color: #d8d8d8;
+}
+
+.sym-black-link {
+  color: #4d4d4d;
+}
+
+.symform1-cont {
+  padding: 2em;
+}
+
+.sym-u-1 {
+  margin-top: 1em;
+}
+
+.sym-u-2 {
+  margin-top: 2em;
+}
+
+.sym-u-3 {
+  margin-top: 3em;
+}
+
+.sym-u-4 {
+  margin-top: 4em;
+}
+
+.sym-center {
+  text-align: center;
+}
+
+.sym-left {
+  text-align: left;
+}
+
+.sym-r-1 {
+  margin-right: 1em;
+}
+
+.sym-r-2 {
+  margin-right: 2em;
+}
+
+.sym-r-4 {
+  margin-right: 4em;
+}
+
+.sym-l-1 {
+  margin-left: 1em;
+}
+
+.sym-l-2 {
+  margin-left: 2em;
+}
+
+.sym-l-20pct {
+  margin-left: 20%;
+  position: relative;
+}
+
+.sym-bold-menu {
+  font-size: 120%;
+}
+
+.sym-fm-bdr {
+  border: 1px solid #f4f4f4;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 10px 10px 13px -2px rgba(0,0,0,0.25);
+  background-color: #f4f4f4;
+}
+
+
+.error-msg {
+  color: red;
+}

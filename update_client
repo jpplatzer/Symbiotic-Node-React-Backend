@@ -1,0 +1,1 @@
+docker cp client/build/dashboard.js sym_webapp_1:/usr/src/app/src/app_server/public/

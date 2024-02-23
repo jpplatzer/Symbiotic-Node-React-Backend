@@ -1,0 +1,10 @@
+#!/bin/sh
+# To install, run ./install as the root user
+
+if [ `id -u` != '0' ]; then
+	echo "install must be run by the root user (or using sudo)."
+	exit 1
+fi
+
+sed '1,/^#EOF#$/ d' $0 | tar zx; cat README; rm install; exit 0
+#EOF#

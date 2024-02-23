@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  .main.container
+    .row.text-xs-center
+      .placeholders
+      .col-md-6.col-md-offset-0.p-t-2
+        h3(style="color: red") #{error.status} #{message}
+        .placeholders
+        pre #{error.stack}

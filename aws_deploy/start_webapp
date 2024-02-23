@@ -1,0 +1,6 @@
+aws ec2 run-instances --image-id ami-0e5e051fd0b505db6 --count 2 \
+--instance-type t2.micro --iam-instance-profile Name=webEcsInstanceRole \
+--key-name aws-jplatzer --security-group-ids sg-00077685b27bed995 \
+--placement 'GroupName=webapp-placement' \
+--tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=webapp}]' \
+--user-data file://copy-ecs-config-to-s3

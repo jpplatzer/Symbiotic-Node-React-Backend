@@ -1,0 +1,409 @@
+=================================================================================
+
+Primary DB: 172.31.31.115 us-west-2a instanceRole dbPrimary  - ec2-52-13-111-42.us-west-2.compute.amazonaws.com
+Secondary DB: 172.31.15.115 us-west-2c instanceRole dbSecondary - ec2-54-191-165-113.us-west-2.compute.amazonaws.com
+Arbiter DB: 172.31.47.115 us-west-2b instanceRole dbArbiter - ec2-35-163-225-44.us-west-2.compute.amazonaws.com
+Web1: ec2-34-221-214-53.us-west-2.compute.amazonaws.com
+Web2: ec2-54-202-119-230.us-west-2.compute.amazonaws.com
+
+
+aws ec2 describe-instances --filters 'Name=instance-type,Values=t2.micro'
+
+ssh -i ~/.ssh/aws-jplatzer.pem ec2-user@xxx
+docker exec -it xxx /bin/bash
+http://xxx
+sudo yum update
+
+symbiotic-web-175551753.us-west-2.elb.amazonaws.com
+
+=======================================================================================
+Current working commands:
+
+aws ec2 terminate-instances --instance-ids <id1> <id2>
+
+aws ec2 describe-instances [--instance-ids <id1> <id2>]
+
+aws ecs update-service --force-new-deployment --cluster symbiotic-utils \
+  --service utils --task-definition utils --desired-count 1
+
+aws ecs describe-services --cluster symbiotic-utils --services utils
+
+aws ecs create-service --cluster symbiotic-utils --service-name utils \
+ --task-definition utils --desired-count 1
+
+aws ecs create-service --cli-input-json file://elb-webapp-service.json
+
+aws ecs update-service --force-new-deployment --cluster symbiotic-db \
+  --service redis --task-definition redis --desired-count 1
+
+aws ecs create-service --cluster symbiotic-db --service-name redis \
+ --task-definition redis --desired-count 1
+
+aws ecs update-service --force-new-deployment --cluster symbiotic-db \
+  --service dbSecondary --task-definition dbSecondary --desired-count 1
+
+aws ecs create-service --cluster symbiotic-db --service-name dbSecondary \
+ --task-definition dbSecondary --desired-count 1
+
+aws ecs describe-services --cluster symbiotic-db --services dbPrimary
+
+aws ecs update-service --force-new-deployment --cluster symbiotic-db \
+  --service dbPrimary --task-definition dbPrimary --desired-count 1
+
+aws ecs create-service --cluster symbiotic-db --service-name dbPrimary \
+ --task-definition dbPrimary --desired-count 1
+
+aws ecs register-task-definition --cli-input-json \
+  file://db-primary-task-definition.json
+
+aws ecs put-attributes ???
+
+docker tag sym_webapp:latest 735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_webapp
+docker push 735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_webapp
+
+aws ecs update-service --force-new-deployment --cluster symbiotic-web \
+  --service webapp --task-definition webapp --desired-count 2
+
+aws ecs describe-services --cluster symbiotic-web --services webapp
+
+*** Call this only when neeeded ****
+aws ecs delete-service --cluster symbiotic-web --service webapp
+
+=======================================================================================
+Other working commands:
+
+aws ecs register-task-definition --cli-input-json \
+  file://single-testweb-definition.json
+aws ecs create-service --cluster symbiotic-web --service-name single-testweb \
+ --task-definition single-testweb --desired-count 1
+
+docker tag testweb:latest 735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/testweb
+docker push 735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/testweb
+aws ecs update-service --force-new-deployment --cluster symbiotic-web \
+  --service single-testweb --task-definition single-testweb --desired-count 1
+
+
+=======================================================================================
+AWS Docker registry
+1. Authenticate the docker client with AWS
+	1. Have to give the docker client what it needs to authenticate itself by giving the docker client a login token that's good for 12 hours
+	aws ecr get-login --no-include-email
+	2. Copy the registry URL that is returned by the call, and save it off
+	3. Run the entire command that was returned by the call
+2. Create a repository
+aws ecr create-repository --repository-name symbiotic-repo/sym_webapp
+
+Some commands:
+aws ecr describe-repositories
+aws ecr list-images --repository-name symbiotic-repo/sym_webapp
+Create a sample image for testing: docker pull nginx:1.9
+Tag the image (required for any docker registry): docker tag sym_webapp 735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_webapp
+Push the image to the docker registry: docker push 735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_webapp
+
+Update the task definition with the registry url in place of the existing docker label:
+In the file "image": "nginx" --> "735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/nginx:1.9"
+
+Deleting a repository
+aws ecr delete-repository --repository-name deepdive/nginx --force
+
+=================================================================================
+Defining and running services ***
+
+Once the edit is saved, re-reigster the task definition:
+aws ecs register-task-definition --cli-input-json \
+  file://webapp-task-definition.json
+
+Creating/Running a service from a definition:
+aws ecs create-service --cli-input-json file://webapp-service.json
+
+--Or for non-Json config -
+aws ecs create-service --cluster symbiotic-web --service-name single-testweb \
+ --task-definition single-testweb --desired-count 1
+
+Describe services:
+aws ecs describe-services --cluster symbiotic-web --services webapp
+
+List services and tasks
+aws ecs list-task-definitions
+aws ecs list-services --cluster symbiotic-web
+aws ecs list-tasks --cluster symbiotic-web
+
+Updating a service:
+aws ecs update-service --force-new-deployment --cluster symbiotic-web \
+  --service single-testweb --task-definition single-testweb --desired-count 1
+
+aws ecs update-service --force-new-deployment --cluster symbiotic-web \
+  --service testweb --task-definition testweb --desired-count 2
+
+Deleting the service:
+aws ecs update-service --cluster symbiotic-web --service webapp \
+  --task-definition webapp --desired-count 0
+aws ecs delete-service --cluster symbiotic-web --service webapp
+
+=================================================================================
+S3
+
+aws s3api create-bucket --bucket symbioticsecurity --region us-west-2 --create-bucket-configuration LocationConstraint=us-west-2
+{
+    "Location": "http://symbioticsecurity.s3.amazonaws.com/"
+}
+
+aws s3 cp disable-transparent-hugepages s3://symbioticsecurity-internal/disable-transparent-hugepages
+aws s3 ls s3://symbioticsecurity-internal
+
+
+aws s3 cp ecs.config s3://symbioticsecurity/ecs.config
+aws s3 ls s3://symbioticsecurity
+
+=================================================================================
+Ec2 Instances:
+
+https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html - US West 2
+
+aws ec2 run-instances --image-id ami-0c1f4871ebaae6d86 --count 1 \
+--instance-type t2.micro --iam-instance-profile Name=ecsInstanceRole \
+--key-name aws-jplatzer --security-group-ids sg-00077685b27bed995 \
+--user-data file://copy-ecs-config-to-s3
+
+aws ec2 describe-instance-status --instance-id i-033afa09fb0a1ffc4
+aws ecs list-container-instances --cluster symbiotic-web
+aws ecs describe-container-instances --cluster symbiotic-web \
+--container-instances arn:aws:ecs:us-west-2:735780432129:container-instance/7e014baf-fd61-4dcb-b4cc-cac6794f011b
+
+Tearing down an instance
+aws ec2 terminate-instances --instance-ids <instance_id>
+
+===============================================================================================================
+Troubleshooting - SSH CLI
+
+Logging into an EC2 instances console:
+ssh -i ~/.ssh/aws-jplatzer.pem ec2-user@xxx
+
+docker ps
+
+docker logs -f container
+
+=================================================================================
+Security Groups
+
+aws ec2 create-security-group --group-name symbiotic_SG_uswest \
+  --description "Security group for symbiotic on us-west-2"
+aws ec2 describe-security-groups --group-id sg-00077685b27bed995
+
+Authorize Access
+aws ec2 authorize-security-group-ingress --group-id sg-00077685b27bed995 \
+--protocol tcp --port 22 --cidr 72.177.58.58/32
+aws ec2 authorize-security-group-ingress --group-id sg-00077685b27bed995 \
+--protocol tcp --port 80 --cidr 72.177.58.58/32
+
+Authorize future EC2 instances to connect to ElastiCache Redis
+aws ec2 authorize-security-group-ingress --group-id sg-00077685b27bed995 \
+--protocol tcp --port 6379 --source-group sg-00077685b27bed995
+
+(Optional - Don't do this!!!) Delete the Security Group: aws ec2 delete-security-group --group-id sg-00077685b27bed995
+
+Creating IAM roles for ECS:
+Use the console to create the IAM roles needed for instances to access ECS and
+for ECS to access other Amazon resources like S3
+Create the ecsInstanceRole and ecsServiceRole roles
+
+=================================================================================
+Clusters
+Create a cluster:
+aws ecs create-cluster --cluster-name symbiotic-web
+
+Some commands:
+aws ecs list-clusters
+aws ecs describe-clusters --clusters symbiotic-web
+
+Delete cluster:
+(Don't do this!!!) aws ecs delete-cluster --cluster symbiotic-web
+
+
+aws ec2 describe-security-groups --group-id sg-00077685b27bed995
+
+Clusters - a group of containers instances that act as a single computing resource
+Container instance - an Amazon EC2 instance that has been registered to be part of a specific cluster
+Container agent - open source tool that handles the plumbing for enabling EC2 instances to register to a cluster
+Task definitions - describes how docker images should be run. it's a json config file that acts similar to the docker compose yaml file
+Scheduler determines where a service or one-off task will run a cluster by choosing the most optimal instance to run it on
+Service - long running task such as a web application. it is based of a task definition
+Task - the end result of running a task definition. Short-lived operations such as batch jobs can be run as one-off or periodic tasks
+Amazon ECR - a fully managed docker registry
+ECS CLI - open source to help with cluster management. A specialized version of the AWS CLI oriented towards managing clusters.
+
+aws ecs describe-clusters --clusters symbiotic-web
+// https://docs.aws.amazon.com/cli/latest/reference/s3api/create-bucket.html
+
+=================================================================================
+More on Task definitions - describes how docker images should be run
+
+3 Components of a task definition
+- Family - name of the task definition - has no correlation with the docker image
+- Container defintions - defines container parameters - see AWS documentation for this
+- Volumes - essentially docker volumes
+
+aws ecs register-task-definition \
+--cli-input-json file://testweb-task-definition.json
+
+Running a service from a definition:
+aws ecs create-service --cli-input-json file://testweb-service.json
+
+aws ecs list-task-definition-families
+aws ecs list-task-definitions
+aws ecs describe-task-definition --task-definition web:1
+aws ecs register-task-definition help
+aws ecs register-task-definition --generate-cli-skeleton
+
+Scheduling tasks
+3 ways to schedule tasks on a cluster
+- Services - long lived and stateless tasks
+	- Define how many instances you want
+	- Can be connected to ELB
+	- Look up Services and service definition parameters on the AWS site
+- Short-lived/one-off tasks that exit when done
+	- "RunTask" randomly distributes tasks across the cluster to protect instances from getting overloaded
+	- "StartTask" lets you pick where to run a task on the cluster
+	- "StartTask" lets you build or use a scheduler by leaveraging things like the list or describe actions documented on the AWS site
+- Tasks have 3 states
+	- pending
+	- running
+	- stopped
+	- the container agent tracks the state
+
+Scheduling a service to run:
+aws ecs create-service --cluster symbiotic-web --service-name web \
+ --task-definition web --desired-count 1
+aws ecs list-services --cluster symbiotic-web
+aws ecs describe-services --cluster symbiotic-web --services web
+
+Get instance information to get the public DNS:
+aws ec2 describe-instances
+
+==============================================================================
+Running a task:
+aws ecs run-task --cluster symbiotic-web --task-definition web --count 1
+aws ecs list-tasks --cluster symbiotic-web
+aws ecs describe-tasks --cluster symbiotic-web --tasks <arn>
+
+Stopping the task:
+aws ecs stop-task --cluster symbiotic-web  --task <arn>
+
+Starting a task:
+aws ecs list-container-instances --cluster symbiotic-web
+aws ecs start-task --cluster symbiotic-web --task-definition web \
+  --container-instances <container-instance-arn>
+
+To test, run the task: aws ecs run-task --cluster symbiotic-web --task-definition web --count 1
+
+=======================================================================================
+Setting up a classis load balancer (use application LB instead):
+
+1. Get a list of subnets the load balancer can run on:
+aws ec2 describe-subnets
+
+2. Create the load balancer:
+aws elb create-load-balancer --load-balancer-name symbiotic-web \
+--listeners \
+"Protocol=HTTP,LoadBalancerPort=80,InstanceProtocol=HTTP,InstancePort=80" \
+--subnets subnet-47a5ff3e subnet-1a7f4b40 subnet-8b490ec0 \
+--security-groups sg-00077685b27bed995
+
+Get the details of the ELB we just created
+aws elb describe-load-balancers
+
+Configure the idle time­out period
+aws elb modify-load-balancer-attributes --load-balancer-name symbiotic-web \
+--load-balancer-attributes "{\"ConnectionSettings\":{\"IdleTimeout\":20}}"
+
+Configure the health check
+aws elb configure-health-check --load-balancer-name symbiotic-web \
+--health-check Target="HTTP:80,Timeout=20,Interval=60,UnhealthyThreshold=2,Healthy Threshold=10"
+
+
+(Optionally) Delete the ELB
+(Don't do this!!!) aws elb delete-load-balancer --load-balancer-name dockerzon-web
+
+ECS CLI
+===============================================================================================================
+
+Installing: sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest
+Verifying checksum: echo "$(curl -s https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest.md5) /usr/local/bin/ecs-cli" | md5sum -c -
+
+Configurer the ESC CLI credentials:
+ecs-cli configure --cluster test-web --region us-west-2 --default-launch-type EC2 --config-name test-web
+ecs-cli configure profile --access-key _id_ --secret-key _key_ --profile-name test-web
+ecs-cli configure profile default --profile-name test-web
+
+ECS Attributes
+===============================================================================================================
+On AWS Web Console goto ECS -> Cluster : symbiotic-db -> ECS Instances Tab ->
+	Select Instance -> Actions -> View/Edit Attributes ->
+Add attribute:
+instanceRole dbPrimary
+instanceRole dbSecondary
+instanceRole dbArbiter
+
+MongoDB Commands
+===============================================================================================================
+
+command: mongod --auth
+
+use admin
+
+db.createUser(
+  {
+    user: "SSAdmin",
+    pwd: "xxx",
+    roles: [
+    	{ role: "userAdminAnyDatabase", db: "admin" },
+    	{ role: "clusterAdmin", db: "admin" },
+    	{ role: "dbOwner", db: "admin" }
+   	]
+  }
+)
+
+db.auth({ user: "SSAdmin", pwd: "xxx" })
+
+use logs
+
+db.createUser(
+  {
+    user: "logs",
+    pwd: "xxx",
+    roles: [ { role: "readWrite", db: "logs" } ]
+  }
+)
+
+use devices
+
+db.createUser(
+  {
+    user: "webapp",
+    pwd: "xxx",
+    roles: [ { role: "readWrite", db: "devices" } ]
+  }
+)
+
+db.auth({ user: "webapp", pwd: "xxx" })
+
+db.auth({ user: "SSAdmin", pwd: "xxx" })
+
+db.updateUser("SSAdmin",
+  {
+    roles: [
+    	{ role: "userAdminAnyDatabase", db: "admin" },
+    	{ role: "clusterAdmin", db: "admin" },
+    	{ role: "dbOwner", db: "admin" }
+   	]
+  }
+)
+
+db.log.find({"timestamp":{"$gte": ISODate("2018-12-17T22:30:00.0Z")}})
+
+use admin
+
+db.changeUserPassword("SSAdmin", "xxx")
+
+rs.slaveOk()
+

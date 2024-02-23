@@ -1,0 +1,7 @@
+docker run -it --rm \
+  -v ~/symbiotic/source/backend/web_dev/client:/usr/src/app/src/client \
+  -v ~/symbiotic/source/backend/web_dev/server/src/app_server:/usr/src/app/src/app_server \
+  -v ~/symbiotic/source/backend/web_dev/server/src/common:/usr/src/app/src/common \
+  -v files:/usr/src/files \
+  --user=root \
+  sym_webapp npm run build

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+dpkg-query -W -f='${Package} ${Version} ${Architecture}\n'

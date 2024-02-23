@@ -1,0 +1,14 @@
+MONGO_CONT=`docker ps | grep mongo | awk '{ print $NF }'`
+docker run -it --rm \
+  -v files:/usr/src/app/files \
+  --link $MONGO_CONT:db_server \
+  -e NODE_ENV='development' \
+  -e SSKM_MASTER=$SSKMMASTER \
+  -e MONGO_HOST='db_server' \
+  -e MONGO_USER='webapp' \
+  -e REG_PATH='/usr/src/app/files/registration' \
+  -e DOWNLOAD_PATH='/usr/src/app/files/downloads' \
+  -e AUDIT_PATH='/usr/src/app/audit' \
+  --user=$1 \
+  735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_webapp $2 $3 $4 $5 $6
+

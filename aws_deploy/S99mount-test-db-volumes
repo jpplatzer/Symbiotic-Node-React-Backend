@@ -1,0 +1,32 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          S99mount-test-db-volumes
+# Required-Start:    $local_fs
+# Required-Stop:
+# X-Start-Before:    mongod mongodb-mms-automation-agent
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Mount EBS volumes for EC2 instance
+# Description:       Mount EBS volumes for EC2 instance
+### END INIT INFO
+
+mount_volumes() {
+	# $1 INSTANCE_ID
+	INSTANCE_NAME=`aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=Name" | grep Value | cut -d \" -f 4`
+	VOLUME_ID=`aws ec2 describe-tags --filters "Name=key,Values=attachTo" "Name=value,Values=$INSTANCE_NAME" | grep ResourceId | cut -d \" -f 4`
+	aws ec2 attach-volume --volume-id $VOLUME_ID --instance-id $INSTANCE_ID --device /dev/xvdf
+	echo $VOLUME_ID
+}
+
+case "$1" in
+start)
+	INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+	AWS_DEFAULT_REGION=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/[a-z]$//')
+	aws configure set region $AWS_DEFAULT_REGION
+	VOLUME_ID=`mount_volumes $INSTANCE_ID`
+    ;;
+
+stop)
+	aws ec2 detach-volume --volume-id $VOLUME_ID
+	;;
+esac

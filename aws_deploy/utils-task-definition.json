@@ -1,0 +1,47 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "webapp",
+      "image": "735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_webapp",
+      "portMappings": [
+        {
+          "containerPort": 3080
+        }
+      ],
+      "command": ["npm", "run-script", "utils"],
+      "cpu": 1800,
+      "memory": 3800,
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "CFG_FILE",
+          "value": "awsConfig"
+        },
+        {
+          "name": "MONGO_HOST",
+          "value": "db_server"
+        },
+        {
+          "name": "MONGO_USER",
+          "value": "webapp"
+        },
+        {
+          "name": "REDIS_HOST",
+          "value": "172.31.47.115"
+        },
+        {
+          "name": "TEMP_PATH",
+          "value": "/usr/src/app/temp"
+        },
+        {
+          "name": "AUDIT_PATH",
+          "value": "/usr/src/app/audit"
+        }
+       ]
+    }
+  ],
+  "family": "utils"
+}

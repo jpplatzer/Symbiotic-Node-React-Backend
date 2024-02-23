@@ -1,0 +1,6 @@
+aws ec2 run-instances --image-id ami-0e5e051fd0b505db6 --count 1 \
+--instance-type t3.micro --iam-instance-profile Name=dbEcsInstanceRole \
+--key-name aws-jplatzer --security-group-ids sg-0322a94efb1161001 \
+--subnet-id subnet-8b490ec0 --private-ip-address 172.31.47.115 \
+--tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=dbArbiter}]' \
+--user-data file://init-db-ec2

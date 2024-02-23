@@ -1,0 +1,33 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "redis_primary",
+      "image": "735780432129.dkr.ecr.us-west-2.amazonaws.com/symbiotic-repo/sym_redis",
+      "portMappings": [
+        {
+          "containerPort": 6379,
+          "hostPort": 6379
+        }
+      ],
+      "systemControls": [
+        {
+          "namespace": "net.core.somaxconn",
+          "value": "1024"
+        }
+      ],
+      "command": [
+        "redis-server", "/usr/local/etc/redis/redis.conf", 
+      	"--save", "", "--appendonly", "no"
+      ],
+      "cpu": 900,
+      "memory": 400
+    }
+  ],
+  "placementConstraints": [
+    {
+      "type": "memberOf",
+      "expression": "attribute:instanceRole == dbArbiter"
+    }
+  ],
+  "family": "redis"
+}

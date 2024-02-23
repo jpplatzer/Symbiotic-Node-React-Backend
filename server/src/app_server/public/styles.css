@@ -1,0 +1,134 @@
+/*
+ * Base structure
+ */
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+.App__ktW_0 {
+  padding-top: 50px;
+}
+
+
+/*
+ * Global add-ons
+ */
+
+.sub-header__2QMVY {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top__2rRx6 {
+  border: 0;
+}
+
+.navbar-default__2i5kF {
+    background-color: #333;
+    border-color: #333;
+}
+
+.navbar-default__2i5kF .navbar-brand__Uup0c {
+    color: #F8F8F8;
+}
+
+.navbar-default__2i5kF .navbar-brand__Uup0c:hover,
+.navbar-default__2i5kF .navbar-brand__Uup0c:focus {
+    color: #FFFFFF;
+}
+
+.navbar-default__2i5kF .navbar-nav__37qRi > li > a {
+    color: #E7E7E7;
+}
+
+.navbar-default__2i5kF .navbar-nav__37qRi > li > a:hover,
+.navbar-default__2i5kF .navbar-nav__37qRi > li > a:focus {
+    color: #FFFFFF;
+}
+
+/*
+ * Sidebar
+ */
+
+/* Hide for mobile, show later */
+.sidebar__3mnIM {
+  display: none;
+}
+@media (min-width: 768px) {
+  .sidebar__3mnIM {
+    position: fixed;
+    top: 51px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    background-color: #f5f5f5;
+    border-right: 1px solid #eee;
+  }
+}
+
+/* Sidebar navigation */
+.App__ktW_0 {
+.nav-sidebar__3eXqR {
+  margin-right: -21px; /* 20px padding + 1px border */
+  margin-bottom: 20px;
+  margin-left: -20px;
+}
+.nav-sidebar__3eXqR > li > a {
+  padding-right: 20px;
+  padding-left: 20px;
+}
+.nav-sidebar__3eXqR > .active__3-5Qk > a,
+.nav-sidebar__3eXqR > .active__3-5Qk > a:hover,
+.nav-sidebar__3eXqR > .active__3-5Qk > a:focus {
+  color: #fff;
+  background-color: #428bca;
+}
+}
+
+/*
+ * Main content
+ */
+
+.main__30gVH {
+  padding: 20px;
+}
+@media (min-width: 768px) {
+  .main__30gVH {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main__30gVH .page-header__22tga {
+  margin-top: 0;
+}
+
+
+/*
+ * Placeholder dashboard ideas
+ */
+
+.placeholders__2HqG6 {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.placeholders__2HqG6 h4 {
+  margin-bottom: 0;
+}
+.placeholder__3eOIA {
+  margin-bottom: 20px;
+}
+.placeholder__3eOIA img {
+  display: inline-block;
+  border-radius: 50%;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}

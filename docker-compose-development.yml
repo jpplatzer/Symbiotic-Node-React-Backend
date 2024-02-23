@@ -1,0 +1,71 @@
+version: '3'
+
+networks:
+  backend:
+    external:
+      name: backend
+
+volumes:
+  newmongodb:
+    external: true
+  files:
+    external: true
+
+services:
+  webapp:
+    build:
+     context: .
+     dockerfile: Dockerfile-development
+    links:
+     - db
+     - redis_primary
+    networks:
+     backend:
+        aliases:
+          - symbioticsecurity.com
+    ports:
+     - "49080:3080"
+    volumes:
+     - files:/usr/src/app/files
+    environment:
+     NODE_ENV: development 
+     CFG_FILE: localConfig
+     MONGO_HOST: db_server
+     MONGO_USER: webapp
+     REDIS_HOST: redis-primary
+     REDIS_PORT: 6379
+     SSKM_MASTER: ${SSKMMASTER}
+     TEMP_PATH: /usr/src/app/temp
+     AUDIT_PATH: /usr/src/app/audit
+    user: webapp
+    command: npm start
+  
+  db:
+    image: sym_mongo
+    volumes:
+     - newmongodb:/data/db
+    networks:
+     backend:
+        aliases:
+          - db_server
+    command: mongod --auth
+
+  redis_primary:
+    image: local_redis
+    sysctls:                                                                     
+      - net.core.somaxconn=1024                                                  
+    networks:
+     backend:
+        aliases:
+          - redis-primary
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--appendonly yes"]
+
+  redis_replica1:
+    image: sym_redis
+    sysctls:                                                                     
+      - net.core.somaxconn=1024
+    networks:
+     backend:
+        aliases:
+          - redis-replica1
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--slaveof redis-primary 6379", "--appendonly yes"]

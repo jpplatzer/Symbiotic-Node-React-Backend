@@ -1,0 +1,3 @@
+mkdir -p certs/
+cp ../certs/ca.pem certs/ca.crt
+chmod +r certs/ca.crt

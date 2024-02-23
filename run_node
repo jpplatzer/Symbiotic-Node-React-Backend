@@ -1,0 +1,12 @@
+docker run -it --rm \
+  -v files:/usr/src/app/files \
+  --network=backend \
+  -e NODE_ENV='development' \
+  -e CFG_FILE='localConfig' \
+  -e TEMP_PATH='/usr/src/app/temp' \
+  -e SSKM_MASTER=$SSKMMASTER \
+  -e MONGO_HOST='db_server' \
+  -e MONGO_USER='webapp' \
+  -e AUDIT_PATH='/usr/src/app/audit' \
+  --user=webapp \
+  sym_webapp node $1 $2 $3 $4
